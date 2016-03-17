@@ -16,13 +16,20 @@ class watch_reader:
                          'EDA_std': [], 'BVP_std': [], 'HR_std': [],
                          'label': []}
 
+    def reset(self):
+        self.data = {'ACCx': [], 'ACCy': [], 'ACCz': [], 'EDA': [], 'BVP': [], 'HR': []}
+        self.sample_rate = {'ACCx': [], 'ACCy': [], 'ACCz': [], 'EDA': [], 'BVP': [], 'HR': []}
+        self.features = {'EDA_mean': [], 'BVP_mean': [], 'HR_mean': [], 
+                         'EDA_std': [], 'BVP_std': [], 'HR_std': [],
+                         'label': []}
+                         
     def read_start_time(self):
         start_time = 0.0
         with open("Wii_matches/match%d/watch%d%s/tags.csv"%(self.match_id, self.match_id, self.player), "rb") as file1:
             file_reader = csv.reader(file1, delimiter=' ')
             for row_id, row in enumerate(file_reader):
                 start_time = float(row[0])
-        print start_time
+#        print start_time
         return start_time
        
 
@@ -142,7 +149,7 @@ class watch_reader:
             self.features['label'].append(self.winner[idx])
 
                 
-             
+                    
     def plot_data(self):
         plt.plot(np.linspace(0, len(self.data['EDA']) / self.sample_rate['EDA'], num = len(self.data['EDA'])), self.data['EDA'],'r-')
         for idx, timepoint in enumerate(self.timepoints):
@@ -171,12 +178,69 @@ class watch_reader:
             else:
                 print "SOMETHING WRONG"         
         plt.show()
-        
+   
+   
+   
+def write_data():
+    names = ['michal', 'thomas']
+    matches = [1, 2, 3, 4, 5, 6, 7]
+    with open('features_watches.csv', 'wb') as feature_file:
+        f_writer = csv.writer(feature_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        f_writer.writerow(('id', 'EDA_mean', 'BVP_mean', 'HR_mean', 
+                               'EDA_std', 'BVP_std', 'HR_std', 'player', 'win(1) lose(0)'))
+        idd = 1
+        for match in matches:            
+            for name in names:
+                try:
+                    print(name)
+                    print(match)
+                    w_reader = watch_reader(match, name)
+                    w_reader.read_EDA()
+                    w_reader.read_BVP()
+                    w_reader.read_HR()
+                    w_reader.compute_features()
+                    for idx, timepoint in enumerate(w_reader.timepoints):
+                        win = -999                    
+                        if name == 'michal':
+                            if w_reader.winner[idx] == 1:
+                                win = 1
+                            else:
+                                win = 0
+                        elif name == 'thomas':
+                            if w_reader.winner[idx] == 1:
+                                win = 0
+                            else:
+                                win = 1
+                                
+                        f_writer.writerow((idd,w_reader.features['EDA_mean'][idx],
+                                      w_reader.features['BVP_mean'][idx],
+                                      w_reader.features['HR_mean'][idx],
+                                      w_reader.features['EDA_std'][idx],
+                                      w_reader.features['BVP_std'][idx],
+                                      w_reader.features['HR_std'][idx],
+                                      name, win))
+                        idd = idd + 1
+                    w_reader.reset()
+                except:
+                    print('no data')
+                    print (match)
+                    print(name)
+                    print('no data')
+#           for idx, timepoint in enumerate(self.timepoints):
+#               f_writer = csv.writer(feature_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+#               f_writer.writerow((self.features['EDA_mean'][idx],
+#                                  self.features['BVP_mean'][idx],
+#                                  self.features['HR_mean'][idx],
+#                                  self.features['EDA_std'][idx],
+#                                  self.features['BVP_std'][idx],
+#                                  self.features['HR_std'][idx]))
 if __name__ == "__main__":
-    w_reader = watch_reader(1,'thomas')
-    w_reader.read_EDA()
-    w_reader.read_BVP()
-#    w_reader.read_ACC()
-    w_reader.read_HR()
+#    w_reader = watch_reader(1,'thomas')
+#    w_reader.read_EDA()
+#    w_reader.read_BVP()
+##    w_reader.read_ACC()
+#    w_reader.read_HR()
 #    w_reader.plot_data()
-    w_reader.compute_features()
+#    
+#    w_reader.compute_features()
+    write_data()
