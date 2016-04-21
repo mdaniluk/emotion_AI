@@ -15,9 +15,9 @@ def name_to_idx(c):
     return -1
     
 def build_feature(df):
-    
-    #spine
-    smin = df.spine_ty.min()
+    #chest
+    cmin = df.chest_ty.min()
+    cmax = df.chest_ty.max()
     #head
     hmin = df.head_ty.min()
     hmax = df.head_ty.max()
@@ -26,35 +26,34 @@ def build_feature(df):
     #left hand
     lmin = df.hand_L_ty.min()
     lmax = df.hand_L_ty.max()
-    lvel = (lmax-lmin)/len(df)
+    idx = df.hand_L_ty.diff().abs().idxmax()
+    lvel = df.hand_L_ty.diff()[idx]
     #right hand
     rmin = df.hand_R_ty.min()
     rmax = df.hand_R_ty.max()
-    rvel = (rmax-rmin)/len(df)
-    #x-distance between shoudler
-    sdistmin = (df.upperArm_L_tx - df.upperArm_R_tx).min()
-    sdistmax = (df.upperArm_L_tx - df.upperArm_R_tx).max()
-    return [hmin,hmax,hrx,hry,sdistmin,sdistmax,smin,lmin,lmax,lvel,rmin,rmax,rvel]
+    idx = df.hand_R_ty.diff().abs().idxmax()
+    rvel = df.hand_R_ty.diff()[idx]
+    return [hmin,hmax,hrx,hry,cmin,cmax,lmin,lmax,lvel,rmin,rmax,rvel]
 
 m=0
 t=1
 first_line ='winner,head_ty_max,head_ty_min,head_rx_max,head_ry_max,'+\
-            'upperArm_dist_min,upperArm_dist_max,'+\
-            'spine_ty_min,'+\
-            'hand_L_ty_min,hand_L_ty_max,hand_L_y_vel,'+\
-            'hand_R_ty_min,hand_R_ty_max,hand_R_y_vel'
+            'chest_ty_min,chest_ty_max,'+\
+            'hand_L_ty_min,hand_L_ty_max,hand_L_y_vel_max,'+\
+            'hand_R_ty_min,hand_R_ty_max,hand_R_y_vel_max'
 
 #total number of feature
-n_feature = 13+1
+n_feature = 12+1
 
 #frame rate kinect
 frame_rate = 30
 
 #time window before the point
-time_wb = 2
+time_wb = 3
 
 #time window after the point
 time_wf = 2
+
 
 for match in range(1,8):
     #load body file
