@@ -1,6 +1,7 @@
 import numpy as np
 import csv
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 
 class watch_reader:
     def __init__(self, match_id, player):
@@ -107,10 +108,13 @@ class watch_reader:
                 if (row_id > num_rows_to_remove):
                     self.data['HR'].append(float(row[0]))
     
-    def get_window_at_timepoint(self, data, sample_rate, timepoint, size = 4):
+    def get_window_at_timepoint(self, data, sample_rate, timepoint, size = 2):
         centre = sample_rate * timepoint
+#        begin = int(centre + sample_rate * size/2)
+#        end = int(centre + sample_rate * size/2 * 3)
+        
         begin = int(centre - sample_rate * size/2)
-        end = int(centre + sample_rate * size/2)
+        end = int(centre + sample_rate * size/2 * 2)
         return data[begin:end]
         
     def get_mean(self, data):
@@ -131,12 +135,13 @@ class watch_reader:
         
         
         for idx, timepoint in enumerate(self.timepoints):
-#                plt.plot(np.linspace(0, len(self.data['EDA']) / self.sample_rate['EDA'], num = len(self.data['EDA'])), self.data['EDA'],'r-')
-#                plt.axvline(x = timepoint)
-#                plt.show()
+            print timepoint
+#            plt.plot(np.linspace(0, len(self.data['EDA']) / self.sample_rate['EDA'], num = len(self.data['EDA'])), self.data['EDA'],'r-')
+#            plt.axvline(x = timepoint)
+#            plt.show()
             sample_EDA = self.get_window_at_timepoint(self.data['EDA'], self.sample_rate['EDA'], timepoint)
-#                plt.plot(np.linspace(0, len(sample) / self.sample_rate['EDA'], num = len(sample)), sample,'g-')
-#                plt.show()
+#            plt.plot(np.linspace(0, len(sample_EDA) / self.sample_rate['EDA'], num = len(sample_EDA)), sample_EDA,'g-')
+#            plt.show()
             sample_BVP = self.get_window_at_timepoint(self.data['BVP'], self.sample_rate['BVP'], timepoint)
             sample_HR = self.get_window_at_timepoint(self.data['HR'], self.sample_rate['HR'], timepoint)                
             self.features['EDA_mean'].append(self.get_mean(sample_EDA))
@@ -159,15 +164,31 @@ class watch_reader:
                 plt.axvline(x = timepoint,  color='b')
             else:
                 print "SOMETHING WRONG"
+        losing = mpatches.Patch(color='blue', label='Losing point')
+        winning = mpatches.Patch(color='green', label='Winning point')
+        plt.legend(handles=[losing, winning])
+        plt.ylabel('Value of EDA')
+        plt.xlabel('time [s]')
+        plt.title ('electrodermal activity signal')
+        axes = plt.gca()
+        axes.set_xlim([200,250])
         plt.show()
         plt.plot(np.linspace(0, len(self.data['BVP']) / self.sample_rate['BVP'], num = len(self.data['BVP'])), self.data['BVP'],'r-')
         for idx, timepoint in enumerate(self.timepoints):
             if (self.winner[idx] == 1):
-                plt.axvline(x = timepoint,  color='g')
+                plt.axvline(x = timepoint,  color='g', linestyle  = '--')
             elif(self.winner[idx] == 2):
                 plt.axvline(x = timepoint,  color='b')
             else:
-                print "SOMETHING WRONG"         
+                print "SOMETHING WRONG" 
+        losing = mpatches.Patch(color='blue', label='Losing point')
+        winning = mpatches.Patch(color='green', label='Winning point')
+        plt.legend(handles=[losing, winning])
+        plt.ylabel('Value of BVP')
+        plt.xlabel('time [s]')
+        plt.title ('Blood volume pulse signal')
+        axes = plt.gca()
+        axes.set_xlim([200,250])
         plt.show()
         plt.plot(np.linspace(0, len(self.data['HR']) / self.sample_rate['HR'], num = len(self.data['HR'])), self.data['HR'],'g-')
         for idx, timepoint in enumerate(self.timepoints):
@@ -176,7 +197,13 @@ class watch_reader:
             elif(self.winner[idx] == 2):
                 plt.axvline(x = timepoint,  color='b')
             else:
-                print "SOMETHING WRONG"         
+                print "SOMETHING WRONG" 
+        losing = mpatches.Patch(color='blue', label='Losing point')
+        winning = mpatches.Patch(color='green', label='Winning point')
+        plt.legend(handles=[losing, winning])
+        plt.ylabel('Value of HR')
+        plt.xlabel('time [s]')
+        plt.title ('Heart rate signal')
         plt.show()
    
    
@@ -184,7 +211,7 @@ class watch_reader:
 def write_data():
     names = ['michal', 'thomas']
     matches = [1, 2, 3, 4, 5, 6, 7]
-    with open('features_watches.csv', 'wb') as feature_file:
+    with open('features_watches_-1_2.csv', 'wb') as feature_file:
         f_writer = csv.writer(feature_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
         f_writer.writerow(('id', 'EDA_mean', 'BVP_mean', 'HR_mean', 
                                'EDA_std', 'BVP_std', 'HR_std', 'player', 'win(1) lose(0)'))
@@ -235,12 +262,12 @@ def write_data():
 #                                  self.features['BVP_std'][idx],
 #                                  self.features['HR_std'][idx]))
 if __name__ == "__main__":
-#    w_reader = watch_reader(1,'thomas')
-#    w_reader.read_EDA()
-#    w_reader.read_BVP()
+    w_reader = watch_reader(3,'michal')
+    w_reader.read_EDA()
+    w_reader.read_BVP()
 ##    w_reader.read_ACC()
-#    w_reader.read_HR()
+    w_reader.read_HR()
 #    w_reader.plot_data()
 #    
-#    w_reader.compute_features()
+    w_reader.compute_features()
     write_data()
